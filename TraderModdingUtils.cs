@@ -17,7 +17,7 @@ namespace TraderModding
         {
             string[] mods = null;
             Task t = Task.Run(() => { mods = GetTraderMods(); });
-            t.Wait(); // probably unnessecary but keeping it to be safe
+            t.Wait(); // probably unnecessary but keeping it to be safe
 
             return mods;
         }
