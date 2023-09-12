@@ -1,11 +1,13 @@
 ﻿using Aki.Reflection.Patching;
 using EFT.InventoryLogic;
-using System.Reflection;
-using System.Linq;
-using EFT.UI.WeaponModding;
-using UnityEngine;
 using EFT.UI;
 using EFT.UI.Screens;
+using EFT.UI.WeaponModding;
+using HarmonyLib;
+using System.Reflection;
+using System.Linq;
+using UnityEngine;
+
 
 namespace TraderModding
 {
@@ -16,7 +18,14 @@ namespace TraderModding
 
         protected override MethodBase GetTargetMethod()
         {
-            return typeof(DropDownMenu).GetMethod("method_0", BindingFlags.Instance | BindingFlags.NonPublic);
+            // Better than "method_x", which can be changed at any time.
+            return AccessTools.GetDeclaredMethods(typeof(DropDownMenu)).Single(m =>
+            {
+                var paramList = m.GetParameters();
+                // Searching our desired method through parameters
+                // method_?(GClass???? sourceContext, Item item, TraderControllerClass itemController, Transform container)
+                return (paramList.Length == 4 && paramList[0].Name == "sourceContext" && paramList[3].Name == "container");
+            });
         }
 
         [PatchPrefix]
@@ -24,7 +33,7 @@ namespace TraderModding
         {
             if (Globals.isTraderModding && Globals.traderMods.Length > 0)
             {
-                if (!Globals.traderMods.Any(mod => mod == item.TemplateId))
+                if (Globals.traderMods.All(mod => mod != item.TemplateId))
                 {
                     return false;
                 }
